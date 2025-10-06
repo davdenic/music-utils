@@ -1,8 +1,17 @@
-#!/bin/bash
-#
-find . -maxdepth 3 -iname '*.[Mm][Pp]3' -exec sh -c 'curfname="{}";\
-      bitrate=`mp3info -r a -p "%r\n" "$curfname"`;\
-      if (( $(echo "$bitrate < 320" |bc -l) ));\
-      then \
-         echo $curfname has $bitrate bitrate; \
-      fi ' \; | tee ./lowbitrate.log
+#!/usr/bin/env bash
+
+# find and print a log of mp3 with bitrate lower than 320kbps
+# usage mp3lowlog 256
+
+# Default minimum bitrate
+MIN_BITRATE=${1:-320}
+
+echo "🔍 Scanning for MP3s below ${MIN_BITRATE} kbps..."
+
+find . -maxdepth 3 -iname '*.[Mm][Pp]3' -exec sh -c '
+  curfname="{}"
+  bitrate=$(mp3info -r a -p "%r\n" "$curfname")
+  if (( $(echo "$bitrate < '"$MIN_BITRATE"' " | bc -l) )); then
+    echo "$curfname has $bitrate kbps bitrate"
+  fi
+' \; | tee ./lowbitrate.log
