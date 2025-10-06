@@ -22,12 +22,9 @@ for f in ./*.flac */*.flac */*/*.flac; do
   if { [ "$rate" -eq 44100 ] || [ "$rate" -eq 48000 ]; } && [ "$bits" -eq 16 ]; then
     echo "$f" already 16bit 44.1-48kHz
     continue
-  elif (( rate % 48000 == 0 )); then
-    ffmpeg -y -i "$f" -ar 48000 -sample_fmt s16 "${f%.flac} 16_48.flac" 
-    rm -f "$f"
   else
-    ffmpeg -y -i "$f" -ar 44100 -sample_fmt s16 "${f%.flac} 16_44.flac"
-    rm -f "$f"
+    out="${f%.flac} tmp.flac"
+    ffmpeg -y -i "$f" -ar $(( rate % 48000 == 0 ? 48000 : 44100 )) -sample_fmt s16 "$out" && mv -f "$out" "$f"
   fi
 done
 
