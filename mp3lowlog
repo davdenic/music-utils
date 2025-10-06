@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+find . -maxdepth 3 -iname '*.[Mm][Pp]3' -exec sh -c 'curfname="{}";\
+      bitrate=`mp3info -r a -p "%r\n" "$curfname"`;\
+      if (( $(echo "$bitrate < 320" |bc -l) ));\
+      then \
+         echo $curfname has $bitrate bitrate; \
+      fi ' \; | tee ./lowbitrate.log

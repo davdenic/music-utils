@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# convert flac to mp3 320k 
+# recursive, it works perfectly for discography 
+# creates folder 'mp3' with subfolders with the same folder names of parent-sibling
+# requires ffmpeg
+# tested on Mac 
+
+
+find '.' -iname '*.flac' -exec bash -c 'D=$(dirname "{}"); B=$(basename "{}"); mkdir -p "mp3/$D/"; ffmpeg -i "{}" -ab 320k -map_metadata 0 -id3v2_version 3 -acodec libmp3lame "mp3/$D/${B%.*}.mp3"' \;
