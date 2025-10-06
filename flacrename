@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# rename flac files according to cue file
+# rename split-track*.flac files according to cue file
 
 ~/cuetag.sh *.cue split-track*.flac
 for a in *.flac; do
