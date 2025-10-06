@@ -1,43 +1,59 @@
 # 📀 Music Utils
 
-A bunch of scripts that I run very often to maintain my library.
-Tested on macOs, but should works also on linux.
+A collection of Bash scripts to maintain your music library efficiently. Tested on macOS, should also work on Linux.
 
-## Flac CD quality
+## Setup
 
-Convert flac 24/96 to CD quality 16/48-44.1
+1. Download the scripts to a preferred location, e.g., your home directory.
+2. Ensure they are executable:
 
-The script read the current file and find if is multiple of 44.1kHz or 48kHz, and converts to those.
-for example
-96 -> 48
-192 -> 48
-88.2 -> 44.1
-
-### Why?
-
-16/44.1 is the redbook standard that was chosen for CDs. It wasn't picked randomly, it was selected because it covers (well, exceeds) the range of human hearing.
-
-16-bits gives 96dB of dynamic range, 44.1KHz covers 0Hz to 22050Hz. When young with perfect hearing, you'll hear 20Hz to 20000Hz.
-
-Trained listeners have heard differences between 16/44.1 and high res when listening in controlled test environments, using headphones and test tones. Real world, with music, you have no chance of hearing any difference. A million times more so when listening through speakers as you'll have 30-40dB noise floor in a quiet room.
-
-There are genuine benefits for recording and producing music at higher sample rates and bit depth, but no benefit for music playback.
-
-If you can hear differences between high res and 16/44.1 versions of a song, they will be different masters.
-
----
-
-## Recursive Flac to mp3 320kbps
-
-Converts flac to mp3 at 320kbps recursive keeping the folder structure
-
+```bash
+chmod +x /path/to/music-utils/*
 ```
+
+### Requirements
+
+install flac
+```bash
+brew install flac
+```
+
+install ffmpeg 
+```bash
+brew install ffmpeg
+```
+
+install mp3info (for mp3lowlog)
+```bash
+brew install mp3info
+```
+
+## FLAC CD Quality
+
+Convert FLAC files from high-resolution (e.g., 24-bit/96kHz) to CD quality (16-bit/44.1kHz or 48kHz).
+
+The script detects the sample rate of each file and converts it to the nearest multiple of 44.1kHz or 48kHz:
+
+* 96kHz → 48kHz
+* 192kHz → 48kHz
+* 88.2kHz → 44.1kHz
+
+### Why CD Quality?
+
+* 16-bit gives 96dB of dynamic range.
+* 44.1kHz covers 0Hz to 22,050Hz, covering human hearing.
+* High-resolution audio benefits recording and production, but for playback, differences are inaudible.
+
+## Recursive FLAC to MP3 320kbps
+
+Converts FLAC files to MP3 at 320kbps recursively while preserving folder structure.
+
+```bash
 cd /your/Music/Artist1/
 /path/to/flac2mp3
-````
+```
 
-It creates a new `mp3` folder with inside each album subfolders with mp3 files
-It keeps the original flac folders:
+Creates a new `mp3` folder containing album subfolders with MP3 files while keeping original FLAC folders:
 
 ```
 Music/
@@ -51,51 +67,50 @@ Music/
 │       │   └── *.mp3
 │       └── 2000 - Album 2/
 │           └── *.mp3
-
 ```
 
+## FLAC Rename According to CUE File
 
----
+When splitting a single album FLAC or APE file into tracks, filenames often appear as:
 
-## Flac rename according to cue file
+```
+split-track-01.flac
+split-track-02.flac
+```
 
-When splitting a single album flac or ape to separated tracks it happen they names are like 
-`split-track-01.flac`
-`split-track-02.flac`
+This script reads the accompanying `.cue` file and renames tracks accordingly:
 
-This script read the cue file and rename the tracks accordingly.
-
-`01 Mojo Pin.flac`
-`02 Grace.flac`
+```
+01 Mojo Pin.flac
+02 Grace.flac
+```
 
 ### Usage
 
-enter the folder that contains split-track-* files and a .cue file
-
-```
+```bash
 cd /your/splitted/album/
 /path/to/flacrename
 ```
 
----
+## Find MP3 Low Bitrate
 
-## Find Mp3 low bit rate
+Finds MP3 files with bitrate lower than 320kbps recursively. You can specify a different threshold (e.g., 256kbps):
 
-mp3lowlog find recursively mp3 files with low bitrate, by default lower than 320kbps
-run it with a parameter to find lower than that, for example
-
-`mp3lowlog 256`
-
-### usage
-
-1. download the script where do you prefer, for example your home dir
-2. ensure it's executable
-
-`chmod +x /path/to/mp3lowlog`
-
+```bash
+mp3lowlog 256
 ```
+
+### Usage
+
+```bash
 cd /your/Music/root/
 /path/to/mp3lowlog 256
 ```
 
-It save a log file lowbitrate.log
+Generates a log file `lowbitrate.log` with all files below the threshold.
+
+## Notes
+
+* Always backup your music before running these scripts.
+* Ensure `ffmpeg`, `mp3info`, and other dependencies are installed and available in your PATH.
+* Scripts preserve origina
