@@ -1,10 +1,10 @@
 # 📀 Music Utils
 
-A collection of Bash scripts to maintain your music library efficiently. Tested on macOS, should also work on Linux.
+A collection of Bash scripts to maintain my music library efficiently. Tested on macOS, should also work on Linux.
 
 ## Setup
 
-1. Download the scripts to a preferred location, e.g., your home directory.
+1. Download the scripts to a preferred location, e.g., home directory.
 2. Ensure they are executable:
 
 ```bash
@@ -49,7 +49,7 @@ The script detects the sample rate of each file and converts it to the nearest m
 Converts FLAC files to MP3 at 320kbps recursively while preserving folder structure.
 
 ```bash
-cd /your/Music/Artist1/
+cd /path/to/Music/Artist1/
 /path/to/flac2mp3
 ```
 
@@ -88,7 +88,7 @@ This script reads the accompanying `.cue` file and renames tracks accordingly:
 ### Usage
 
 ```bash
-cd /your/splitted/album/
+cd /path/to/splitted/album/
 /path/to/flacrename
 ```
 
@@ -103,7 +103,7 @@ mp3lowlog 256
 ### Usage
 
 ```bash
-cd /your/Music/root/
+cd /path/to/Music/root/
 /path/to/mp3lowlog 256
 ```
 
@@ -111,6 +111,5 @@ Generates a log file `lowbitrate.log` with all files below the threshold.
 
 ## Notes
 
-* Always backup your music before running these scripts.
-* Ensure `ffmpeg`, `mp3info`, and other dependencies are installed and available in your PATH.
-* Scripts preserve origina
+* I reccomend to test those scripts on a test copy of your files/folders to ensure nothing goes wrong.
+* Backup your music before running these scripts.
