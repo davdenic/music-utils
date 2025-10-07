@@ -12,12 +12,13 @@
 # There are genuine benefits for recording and producing music at higher sample rates and bit depth, but no benefit for music playback.
 # If you can hear differences between high res and 16/44.1 versions of a song, they will be different masters.
 
-
 for f in ./*.flac */*.flac */*/*.flac; do
   [ -e "$f" ] || continue
-  rate=$(ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of csv=p=0 "$f")
-  bits=$(ffprobe -v error -select_streams a:0 -show_entries stream=bits_per_raw_sample -of csv=p=0 "$f")
+  rate=$(ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of csv=p=0 "$f" | sed 's/,.*//')
+  bits=$(ffprobe -v error -select_streams a:0 -show_entries stream=bits_per_raw_sample -of csv=p=0 "$f" | sed 's/,.*//')
   bits=${bits:-0}
+
+  echo "$bits" "$rate" "$f"
 
   if { [ "$rate" -eq 44100 ] || [ "$rate" -eq 48000 ]; } && [ "$bits" -eq 16 ]; then
     echo "$f" already 16bit 44.1-48kHz
