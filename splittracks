@@ -28,9 +28,7 @@ for cue in *.cue; do
 
     # ---- check for multi-file cue ----
     if (( file_count > 1 )); then
-        echo "⚠️  Multi-file CUE detected ($file_count FILE entries)."
-        echo "👉  Manual check required — skipping automatic processing."
-        echo
+        echo "⚠️  Multi-file CUE detected ($file_count FILE entries). — skipping."
         continue
     fi
 
@@ -65,5 +63,4 @@ for cue in *.cue; do
     done
 
     echo "✅ Done: $cue"
-    echo
 done
