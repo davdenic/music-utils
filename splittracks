@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+# Strict mono-album audio file splitter using matching CUE sheets.
+# Converts any source audio (FLAC, WAV, APE) to FLAC when splitting.
+# Runs from any folder; finds helper scripts by its own path.
+# Requires: shnsplit, cuetag, metaflac
+
+set -euo pipefail
+
+# resolve absolute path of this script (to find helpers in same folder)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CUETAG="${SCRIPT_DIR}/cuetag"
+
+if [[ ! -x "$CUETAG" ]]; then
+    echo "❌ cuetag not found or not executable at: $CUETAG"
+    exit 1
+fi
+
+for cue in *.cue; do
+    echo "🎼 Processing: $cue"
+    file_count=$(grep -c '^FILE ' "$cue")
+
+    # ---- check for invalid cue ----
+    if (( file_count == 0 )); then
+        echo "⚠️  No FILE entries found — skipping."
+        continue
+    fi
+
+    # ---- check for multi-file cue ----
+    if (( file_count > 1 )); then
+        echo "⚠️  Multi-file CUE detected ($file_count FILE entries)."
+        echo "👉  Manual check required — skipping automatic processing."
+        echo
+        continue
+    fi
+
+    # ---- single-file cue: proceed ----
+    trackfile=$(grep -m1 '^FILE ' "$cue" | sed -E 's/^FILE +"?([^"]+)"?.*/\1/')
+
+    if [[ ! -f "$trackfile" ]]; then
+        echo "⚠️  Referenced file '$trackfile' not found — skipping."
+        continue
+    fi
+
+    echo "🎧 Splitting single-image: $trackfile (from $cue) to FLAC tracks"
+    shnsplit -o flac -f "$cue" "$trackfile"
+
+    # remove tiny junk files (under 30 KB)
+    find . -type f -name "split-track*.flac" -size -30k -delete
+
+    # move original image to safe delete folder
+    mkdir -p ../delete
+    mv "$trackfile" "../delete/delete_${trackfile}"
+
+    # tag new FLAC files using cue
+    "$CUETAG" "$cue" split-track*.flac
+
+    # rename split tracks based on TITLE + TRACKNUMBER
+    for a in split-track*.flac; do
+        title=$(metaflac --show-tag=TITLE "$a" | sed 's/.*=//')
+        track=$(metaflac --show-tag=TRACKNUMBER "$a" | sed 's/.*=//')
+        if [[ -n "$track" && -n "$title" ]]; then
+            mv "$a" "$(printf '%02d %s.flac' "$track" "$title")"
+        fi
+    done
+
+    echo "✅ Done: $cue"
+    echo
+done

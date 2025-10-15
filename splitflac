@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# obsolete, use splittracks instead
+# splits a single flac file into each track and rename each with its proper title
+# requires shnsplit, metaflac, cuetag
+
+FLAC=$(find *.flac)
+shnsplit -o flac -f *.cue *.flac
+find . -type f -name "*.flac" -size -30k -delete
+mv "${FLAC}" "../delete_${FLAC}"
+~/cuetag *.cue split-track*.flac
+for a in *.flac; do
+   TITLE=`metaflac "$a" --show-tag=TITLE | sed s/.*=//g`
+   TRACKNUMBER=`metaflac "$a" --show-tag=TRACKNUMBER | sed s/.*=//g`
+   mv "$a" "`printf %02g $TRACKNUMBER` $TITLE.flac";
+done
+#rm "../delete_${FLAC}"
