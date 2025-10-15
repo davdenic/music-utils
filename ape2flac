@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# Convert all *.ape files in the current folder to FLAC and delete originals only if conversion is successful
+# Requires: ffmpeg
+
+set -euo pipefail
+shopt -s nullglob  # avoid errors if no APE files
+
+for ape in *.ape; do
+    flac="${ape%.ape}.flac"
+    echo "🔄 Converting '$ape' → '$flac' ..."
+
+    if ! ffmpeg -v error -i "$ape" "$flac" -y; then
+        echo "⚠️ Conversion failed — skipping '$ape'"
+        continue
+    fi
+
+    if ! ffmpeg -v error -f flac -i "$flac" -f null - 2>/dev/null; then
+        echo "⚠️ Integrity check failed — skipping deletion of '$ape'"
+        continue
+    fi
+
+    # delete original ape if everything succeeded
+    rm "$ape"
+    echo "✅ Conversion OK — deleted original: $ape"
+done
+
+echo "🎉 All conversions completed."

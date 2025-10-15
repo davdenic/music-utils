@@ -3,9 +3,10 @@
 # Strict mono-album audio file splitter using matching CUE sheets.
 # Converts any source audio (FLAC, WAV, APE) to FLAC when splitting.
 # Runs from any folder; finds helper scripts by its own path.
-# Requires: shnsplit, cuetag, metaflac
+# Requires: shnsplit, cuetag, metaflac, ffmpeg
 
 set -euo pipefail
+shopt -s nullglob
 
 # resolve absolute path of this script (to find helpers in same folder)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,19 +21,17 @@ for cue in *.cue; do
     echo "🎼 Processing: $cue"
     file_count=$(grep -c '^FILE ' "$cue")
 
-    # ---- check for invalid cue ----
+    # ---- guard clauses ----
     if (( file_count == 0 )); then
         echo "⚠️  No FILE entries found — skipping."
         continue
     fi
 
-    # ---- check for multi-file cue ----
     if (( file_count > 1 )); then
-        echo "⚠️  Multi-file CUE detected ($file_count FILE entries). — skipping."
+        echo "⚠️  Multi-file CUE detected ($file_count FILE entries) — skipping."
         continue
     fi
 
-    # ---- single-file cue: proceed ----
     trackfile=$(grep -m1 '^FILE ' "$cue" | sed -E 's/^FILE +"?([^"]+)"?.*/\1/')
 
     if [[ ! -f "$trackfile" ]]; then
@@ -40,13 +39,29 @@ for cue in *.cue; do
         continue
     fi
 
-    echo "🎧 Splitting single-image: $trackfile (from $cue) to FLAC tracks"
+    echo "🎧 Splitting single-image: $trackfile → FLAC tracks"
     shnsplit -o flac -f "$cue" "$trackfile"
 
     # remove tiny junk files (under 30 KB)
     find . -type f -name "split-track*.flac" -size -30k -delete
 
-    # move original image to safe delete folder
+    # ---- FLAC integrity check BEFORE moving original ----
+    failed=0
+    for a in split-track*.flac; do
+        if ! ffmpeg -v error -f flac -i "$a" -f null - 2>/dev/null; then
+            echo "⚠️  FLAC file corrupted or unreadable: $a"
+            failed=1
+        fi
+    done
+
+    if (( failed == 1 )); then
+        echo "❌ One or more tracks failed integrity check — cleaning up split files"
+        rm -f split-track*.flac
+        echo "❌ Skipping cue: $cue"
+        continue
+    fi
+
+    # ---- all tracks OK: move original to delete folder ----
     mkdir -p ../delete
     mv "$trackfile" "../delete/delete_${trackfile}"
 
