@@ -6,5 +6,22 @@
 # requires ffmpeg
 # tested on Mac 
 
+#find '.' -iname '*.flac' -exec bash -c 'D=$(dirname "{}"); B=$(basename "{}"); mkdir -p "$DEST/$D/"; ffmpeg -i "{}" -ab 320k -map_metadata 0 -id3v2_version 3 -acodec libmp3lame "$DEST/$D/${B%.*}.mp3"' \;
 
-find '.' -iname '*.flac' -exec bash -c 'D=$(dirname "{}"); B=$(basename "{}"); mkdir -p "mp3/$D/"; ffmpeg -i "{}" -ab 320k -map_metadata 0 -id3v2_version 3 -acodec libmp3lame "mp3/$D/${B%.*}.mp3"' \;
+DEST="${1:-mp3}"
+find '.' -iname '*.flac' -exec bash -c '
+  DEST="$0"
+  FILE="$1"
+
+  D=$(dirname "$FILE")
+  B=$(basename "$FILE")
+
+  mkdir -p "$DEST/$D"
+
+  ffmpeg -i "$FILE" \
+    -ab 320k \
+    -map_metadata 0 \
+    -id3v2_version 3 \
+    -acodec libmp3lame \
+    "$DEST/$D/${B%.*}.mp3"
+' "$DEST" {} \;
