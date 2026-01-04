@@ -1,17 +1,28 @@
 #!/usr/bin/env bash
 
-# find and print a log of mp3 with bitrate lower than 320kbps
-# usage mp3lowlog 256
-
-# Default minimum bitrate
 MIN_BITRATE=${1:-320}
+LOGFILE="./lowbitrate.log"
 
 echo "🔍 Scanning for MP3s below ${MIN_BITRATE} kbps..."
+echo "---- Scan started: $(date) ----" > "$LOGFILE"
 
 find . -maxdepth 3 -iname '*.[Mm][Pp]3' -exec sh -c '
-  curfname="{}"
-  bitrate=$(mp3info -r a -p "%r\n" "$curfname")
-  if (( $(echo "$bitrate < '"$MIN_BITRATE"' " | bc -l) )); then
-    echo "$curfname has $bitrate kbps bitrate"
+  FILE="$1"
+  MIN="$2"
+
+  BITRATE=$(mp3info -r a -p "%r\n" "$FILE" 2>/dev/null)
+
+  if [ -z "$BITRATE" ]; then
+    echo "UNREADABLE | $FILE | bitrate not found"
+    exit 0
   fi
-' \; | tee ./lowbitrate.log
+
+  # convert float to integer (e.g. 320.000000 -> 320)
+  BITRATE_INT=${BITRATE%.*}
+
+  if [ "$BITRATE_INT" -lt "$MIN" ]; then
+    echo "LOW        | $FILE | ${BITRATE_INT} kbps"
+  fi
+' sh {} "$MIN_BITRATE" \; | tee -a "$LOGFILE"
+
+echo "---- Scan finished: $(date) ----" >> "$LOGFILE"
